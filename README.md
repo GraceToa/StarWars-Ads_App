@@ -36,7 +36,7 @@ La app consume la API pública **SWAPI** y permite visualizar personajes, su inf
     <tr>
         <td><img src="assets/seven.png"  width="250" alt="Home"></td>
         <td><img src="assets/eight.png"  width="250" alt="Search"></td>
-        
+        <td><img src=""  width="250" alt="Search"></td>
     </tr>
       
 </table>
