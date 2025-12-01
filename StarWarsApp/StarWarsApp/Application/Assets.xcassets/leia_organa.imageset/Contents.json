@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "leia_organa.jpg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
