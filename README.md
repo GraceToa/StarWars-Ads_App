@@ -1,7 +1,11 @@
 
 
 
-# StarWars Explorer — Prueba Técnica iOS (Swift / MVVM / Clean Architecture)
+# StarWars Explorer + Ads (Swift / MVVM / Clean Architecture)
+![Swift](https://img.shields.io/badge/Swift-5.9-orange?logo=swift)
+![iOS](https://img.shields.io/badge/iOS-17%2B-blue?logo=apple)
+![Architecture](https://img.shields.io/badge/Architecture-MVVM%20%7C%20SOLID%20%7C%20DI-green)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 ## SWAPI (The Star Wars API) 
 
 Fuente: [https://swapi.dev/](https://swapi.dev/) 
@@ -11,11 +15,31 @@ Este proyecto es una aplicación iOS desarrollada en **Swift 6** utilizando **Sw
 
 La app consume la API pública **SWAPI** y permite visualizar personajes, su información y las películas en las que aparecen.
 
-## Cumplimiento de los Requerimientos
-
-A continuación se detalla cómo el proyecto cumple cada uno de los puntos solicitados en la prueba técnica:
-
 ---
+
+## Estructura del proyecto 
+
+<table border="3" bordercolor="black" align="center">
+    <tr>
+        <th colspan="3">UI display in iPhone 16 Pro</th> 
+    </tr>
+    <tr>
+        <td><img src="assets/one.png"  width="250" alt="SingIn"></td>
+        <td><img src="assets/two.png"  width="250" alt="Profile"></td>
+        <td><img src="assets/three.png"  width="250" alt="SignUp"></td>      
+    </tr>
+    <tr>
+        <td><img src="assets/four.png"  width="250" alt="Create"></td>
+        <td><img src="assets/five.png"  width="250" alt="Create"></td>
+        <td><img src="assets/six.png"  width="250" alt="Detail"></td>      
+    </tr>
+    <tr>
+        <td><img src="assets/seven.png"  width="250" alt="Home"></td>
+        <td><img src="assets/eight.png"  width="250" alt="Search"></td>
+        
+    </tr>
+      
+</table>
 
 ###  1. Listado de todos los personajes con paginación tipo *endless*
 
@@ -28,8 +52,6 @@ La aplicación carga todos los personajes de SWAPI usando paginación manual, si
   - **Blue** → género masculino  
   - **Pink** → género femenino  
   - **Gray** → género desconocido o no especificado  
-
-Esto cumple con el requisito de mostrar una “foto/tipo identificativo del género” sin depender de imágenes externas para todos los personajes.
 
 Además, el listado muestra:
 - Nombre del personaje  
@@ -66,24 +88,8 @@ Esto garantiza que la aplicación cumple el requisito de:
 
 ---
 
-### Resultado
 
-Todos los requerimientos del proyecto han sido implementados siguiendo las buenas prácticas:
-
-- Arquitectura MVVM + Use Cases + Repositories  
-- Concurrencia moderna (`async/await`, `TaskGroup`)  
-- SwiftUI para toda la interfaz  
-- Caché local para modo offline  
-- Paginación personalizada sin librerías  
-- Tests unitarios completos para ViewModels y Use Cases  
-
-
-#CUESTIONARIO (a contestar por escrito en el README) 
-Contestad las siguientes preguntas  una  vez **terminado  el  proyecto** en el ***README***.
-- El equipo Mobile ha ganado  el  concurso y cree que la app puede ser útil para muchos fans de la franquicia, por lo que han  decidido  publicarla  en las tiendas de aplicaciones y monetizarla. Se ha optado  por  mostrar  anuncios  en la aplicación, concretamente  en  los  listados de los  personajes. Los anuncios son generados  por  un SDK  interno de la compañía al que habrá que llamar  cada  vez que necesitemos  generar un anuncio. Cada X personajes  en  los  listados se quiere  mostrar un anuncio. ¿Qué  cambios  realizarías  en  el  proyecto para cubrir  esta  necesidad? 
-- Se decide crear una segunda aplicación o Widget que comparta la misma fuente de datos local de personajes ya creada. ¿Qué  cambios  ejecutarías en el proyecto?
-
-## 1. Inserción de anuncios en el listado de personajes
+## 4. Inserción de anuncios en el listado de personajes
 
 El equipo quiere monetizar la app mostrando un anuncio **cada X personajes**, usando un **SDK interno** que se debe invocar de forma explícita.
 
@@ -94,130 +100,6 @@ El equipo quiere monetizar la app mostrando un anuncio **cada X personajes**, us
 - Independencia de la UI respecto al SDK  
 
 ---
-###  **CAMBIOS PROPUESTOS y REALIZADOS**
-- Para la prueba técnica trabajaré con anuncios falsos,sin depender de SDKs reales, utilizando **Picsum**
-    que me permite generar imágenes tipo banner como si fueran anuncios reales.
-### 1. Defini el modelo del anuncio (Data/Domain), solo con lo que la UI necesita: id,título,imagen(URL), etc.
-```swift
-Data:
-struct AdDTO: Decodable {
-    let title: String
-    let imageURL: URL?
-    let actionURL: URL?
-}
-Domain: 
-struct AdModel: Identifiable {
-    let id: UUID
-    let title: String
-    let imageURL: URL?
-    let actionURL: URL?  //para simular un tap
-}
-```
-
-### 2. Crear el Protocolo del proveedor de anuncios (Domain), esto abstrae el SDK/API real
-```swift
-protocol AdsProviderProtocol {
-    func loadAd() async throws -> AdModel
-}
-```
-
-### 3. Implementar un proveedor fake de anuncios (Data/Provider)
-```swift
-final class FakeAdsProvider: AdsProviderProtocol {
-
-    func loadAd() async throws -> AdModel {
-        // Aquí se llamaría al SDK interno de la compañía, de momento son fakes
-        // y se adaptaria la respuesta a AdModel
-    }
-}
-```
-
-### 4. Crear un tipo para los elementos de la lista (Presentation).
-    este tipo "PeopleListItem será el que pinte la vista, en lugar de [Person] directamente"
-```swift
-enum PeopleListItem: Identifiable {
-    case person(Person)
-    case ad(AdModel)
-
-    var id: String {
-        switch self {
-        case .person(let person): return person.id
-        case .ad(let ad): return ad.id.uuidString
-        }
-    }
-}
-```
-### 5. Actualizar el PeopleListViewModel
-    - Inyectar AdsProviderProtocol en el init
-    - Añadir una propiedad addFrequency (por ejemplo cada 5 personajes)
-    - Añadir almacenamiento para anuncios precargados ([In:AddModel] o similar)
-    - Crear una propiedad computada listItems: [PeopleListItem]
-    - método preloadAdsIfNeeded (forPage:) para ir pidiendo anuncios cuando llegan
-        nuevas páginas.
-        
-### 6. Actualizar la vista PeopleListView
-    - En lugar de iterar sobre viewModel.filteredPeople o people, iterar sobre viewModel.listItems
-    - Crear una vista AdRowView para mostrar el anuncio (AdModel)
-    - Mantener PersonRowView sin cambios.
-
-### 7. Actualizar los tests del PeopleListViewModel
-    - Crear MockAdsProvider que implemente AdsProviderProtocol.
-    - test para:
-        - se insertan un .ad cada X personajes.
-        - el ViewModel sigue funcionando incluso si el proveedor de anuncios falla.
-    
-
-## 2. Segunda app o Widget que comparta la misma fuente de datos local
-
-### Los objetivos serían:
-- Reutilizar al máximo la lógica de dominio y datos.
-- Evitar duplicar código (repositorios, modelos, mapeos).
-- Permitir que app principal y widget vean los mismos datos locales.
----
-###  **CAMBIOS PROPUESTOS**
-
-### 1. Crear un módulo independiente, extrayendo la lógica de dominio + data, hay dos formas de hacerlo 
-- Con Swift Package o un framework interno 
-
-- Este módulo contendría:
-Modelos de dominio: Person, Film, BirthYear, etc.
-
-Protocolos de repositorio: PeopleRepositoryProtocol, FilmsRepositoryProtocol
-
-Use Cases: LoadPeoplePageUseCase, GetPersonFilmsUseCase, etc.
-
-Lógica de mapeo DTO → dominio.
-
-Lógica de caché local (por ejemplo, un PeopleLocalDataSource).
-- La app principal y el widget se enlazarían contra este módulo y reutilizarían exactamente el mismo código.
-
-### 2. Diseñar una fuente de datos local compartida
-
-Para que la app principal y el widget usen los mismos personajes sin duplicar nada, lo ideal es que ambos accedan exactamente al mismo archivo o base de datos.
-
-Dependiendo del método de persistencia:
-
-**Si se usa base de datos (Core Data / SwiftData):**
-- Se crea el contenedor de persistencia dentro del módulo compartido.
-- Se activa un **App Group**, y tanto la app como el widget apuntan al mismo archivo de la base de datos.
-- El `PeopleRepository` puede leer y escribir ahí, y cuando no hay conexión usará esos datos como caché.
-
-**Si se usa fichero local (JSON / plist / ..):**
-- El fichero se guarda dentro del **App Group**.
-- Se expone un `PeopleLocalDataSourceProtocol` que se encarga de leer/escribir ese fichero.
-- Tanto la app como el widget acceden a la misma ruta, así los datos están siempre sincronizados.
-
-### 3. Repositorios adaptados a cada proceso, pero apuntando a la misma fuente física
-- En la app -> red + caché, el repositorio podría:
-        - Descargar de la API.
-        - Guardar en local.
-        - Servir al ViewModel.
-- En el widget -> solo lectura desde caché:
-        - El repositorio podría solo ser de lectura y usar únicamente un localDataSource para evitar llamadas a red costosas
-        - El widget solo mostraría datos ya cacheados por la app principal
-        
-
-###  **RESUMEN**
 
 #### **Anuncios en la lista de personajes**
 - Crear un `AdsProviderProtocol` como capa de abstracción del SDK interno de anuncios.
@@ -226,12 +108,17 @@ Dependiendo del método de persistencia:
 
 ---
 
-#### **Segunda app o Widget con la misma fuente de datos**
-- Extraer el dominio y la capa de datos a un módulo compartido (Swift Package o framework interno).
-- Guardar la base de datos o fichero local dentro de un **App Group**, lo que permite que distintos targets compartan el mismo almacenamiento.
-- Mantener repositorios que apunten al mismo origen de datos, pero con comportamiento adaptado:
-  - App principal → lectura y escritura.
-  - Widget → lectura (sin llamadas de red).
+### Resultado
+
+Todos los requerimientos del proyecto han sido implementados siguiendo las buenas prácticas:
+
+- Arquitectura MVVM + Use Cases + Repositories  
+- Concurrencia moderna (`async/await`, `TaskGroup`)  
+- SwiftUI para toda la interfaz  
+- Caché local para modo offline  
+- Paginación personalizada sin librerías  
+- Tests unitarios completos para ViewModels y Use Cases  
+    
 
 ## Autora
 
