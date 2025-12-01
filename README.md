@@ -131,5 +131,4 @@ https://www.linkedin.com/in/grace-toa/
 
 Repositorios
 https://github.com/GraceToa
-https://github.com/GraceToa/StarWarsApp
 
